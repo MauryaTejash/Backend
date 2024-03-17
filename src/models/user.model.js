@@ -1,6 +1,6 @@
 import mongoose, {Schema} from "mongoose";
-import { Jwt } from "jsonwebtoken";
-import bcrypt, { hash } from 'bcrypt'
+import Jwt  from "jsonwebtoken";
+import bcrypt from 'bcrypt'
 const userSchema = new Schema(
     {
         username:{
@@ -54,7 +54,7 @@ userSchema.pre("save", async function (next){ //"save" is an event to save the p
     //this will check that if password is modified then only it will run this command otherwise not
     if(!this.isModified("password")) return next()
 
-    this.password = hash.bcrypt(this.password,10) // 10 says about the no. of time to cycle to encrypt
+    this.password =await hash.bcrypt(this.password,10) // 10 says about the no. of time to cycle to encrypt
     next()
 })
 
