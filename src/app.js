@@ -2,7 +2,6 @@ import express from 'express'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 
-
 const app = express()
 
 app.use(cors({
@@ -21,4 +20,11 @@ app.use(express.static("public"))
 
 app.use(cookieParser())
 
-export default app
+//import routes
+import userRouter from './routes/user.routes.js'
+
+//routes declaration
+
+app.use('/api/v1/users',userRouter) // here we didnt use app.ge() because function is written on other file and we only have to use it
+
+export {app}

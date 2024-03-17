@@ -1,7 +1,7 @@
 
-//By the use of TPromise Method
+//By the use of Promise Method
 const asyncHandler =(requestHandler)=>{
-    (req,res,next)=>{
+    return (req,res,next)=>{
         Promise.resolve(requestHandler(req,res,next))
         .catch((err)=>next(err))
     }
