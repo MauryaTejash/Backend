@@ -1,7 +1,7 @@
 import {asyncHandler} from "../utils/asyncHandler.js";
 import {ApiError} from '../utils/ApiError.js'
 import {User} from '../models/user.model.js'
-import {cloudinary} from '../utils/cloudinary.js'
+import {uploadOnCloudinary} from '../utils/cloudinary.js'
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 //registration of the user 
@@ -21,42 +21,55 @@ const registerUser = asyncHandler(async(req,res)=>{
     // 8.> check for user creation
     // 9.> return response
     const {username, fullname, email, password} = req.body
-    console.log("email:",email);
+    // console.log("email:",email);
+    // console.log(req.body);
 
-    //validation is performed
-    if (fullname === "") {
-        throw new ApiError(400,'Fullname is required')
-    }
-    if (username === "") {
-        throw new ApiError(400,'username is required')
-    }
-    if (email === "") {
-        throw new ApiError(400,'email is required')
-    }
-    if (password === "") {
-        throw new ApiError(400,'password is required')
+    //validation is performed method-1
+    // if (fullname === "") {
+    //     throw new ApiError(400,'Fullname is required')
+    // }
+    // if (username === "") {
+    //     throw new ApiError(400,'username is required')
+    // }
+    // if (email === "") {
+    //     throw new ApiError(400,'email is required')
+    // }
+    // if (password === "") {
+    //     throw new ApiError(400,'password is required')
+    // }
+
+    if (
+        [fullname, email, username, password].some((field) => field?.trim() === "")
+    ) {
+        throw new ApiError(400, "All fields are required")
     }
 
     //check for existing username and email
-    const existedUser = User.findOne({
-        $or :[{email},{username}]
+    const existedUser = await User.findOne({
+        $or: [{ username }, { email }]
     })
 
     if (existedUser) {
-        throw new ApiError(408,"User with same email or username already exists")
+        throw new ApiError(409, "User with email or username already exists")
     }
+    // console.log(req.files);
 
     //for the avatar and cover image
-    const avatarLocalPath = req.files?.avatar[0]?.path
-    const coverImageLocalPath = req.files?.coverImage[0]?.path
+    const avatarLocalPath = req.files?.avatar[0]?.path;
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+    let coverImageLocalPath;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        coverImageLocalPath = req.files.coverImage[0].path
+    }
 
     if (!avatarLocalPath) {
         throw new ApiError(400,"Avatar file is required")
     }
 
     //upload to cloudinary
-    const avatar = await cloudinary(avatarLocalPath)
-    const coverImage = await cloudinary(coverImageLocalPath)
+    const avatar = await uploadOnCloudinary(avatarLocalPath)
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
     if(!avatar){
         throw new ApiError(400,"Avatar file is required")
     }
@@ -80,6 +93,4 @@ const registerUser = asyncHandler(async(req,res)=>{
         new ApiResponse(200, createdUser,"user registration succesfully")
     )
 })
-
-
 export {registerUser}
