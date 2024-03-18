@@ -3,50 +3,53 @@ import Jwt  from "jsonwebtoken";
 import bcrypt from 'bcrypt'
 const userSchema = new Schema(
     {
-        username:{
+        username: {
             type: String,
-            unique: true,
             required: true,
+            unique: true,
             lowercase: true,
-            trim: true,
+            trim: true, 
             index: true
         },
-        email:{
+        email: {
             type: String,
+            required: true,
             unique: true,
-            required: true,
-            lowercase: true,
-            trim: true,
+            lowecase: true,
+            trim: true, 
         },
-        fullname:{
+        fullname: {
             type: String,
             required: true,
-            trim: true,
+            trim: true, 
             index: true
         },
-        avatar:{
-            type: String,
+        avatar: {
+            type: String, 
             required: true,
         },
-        coverimage:{
-            type: String,
+        coverImage: {
+            type: String, 
         },
-        watchHistory:{
-            type: mongoose.Schema.Types.ObjectId,
-            ref:"Video",
-        },
-        password:{
+        watchHistory: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "Video"
+            }
+        ],
+        password: {
             type: String,
-            require: [true,'Password is required'],
+            required: [true, 'Password is required']
         },
-        refreshToken:{
-            type: String,
+        refreshToken: {
+            type: String
         }
+
     },
     {
-        timestamps:true
+        timestamps: true
     }
-)   
+)
 
 //here we use middleware hooke "Pre" which helps in encryption of password
 userSchema.pre("save", async function (next){ //"save" is an event to save the password
@@ -54,7 +57,7 @@ userSchema.pre("save", async function (next){ //"save" is an event to save the p
     //this will check that if password is modified then only it will run this command otherwise not
     if(!this.isModified("password")) return next()
 
-    this.password =await hash.bcrypt(this.password,10) // 10 says about the no. of time to cycle to encrypt
+    this.password = await bcrypt.hash(this.password,10) // 10 says about the no. of time to cycle to encrypt
     next()
 })
 
@@ -75,7 +78,7 @@ userSchema.methods.generateAccessToken = function(){
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
-            expireIn: process.env.ACCESS_TOKEN_EXPIRY
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY
         }
     )
 }
@@ -89,7 +92,7 @@ userSchema.methods.generateRefreshToken = function(){
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
-            expireIn: process.env.REFRESH_TOKEN_EXPIRY
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
         }
     )
 }
